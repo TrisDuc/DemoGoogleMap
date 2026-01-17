@@ -166,9 +166,50 @@ Authentication mode changes **require a restart**.
 2. Select **Restart**
 
 ---
-
 ## 🚀 Installation & Run
 
-### 1. Clone the repository
+### Step 1: Clone the Repository
 ```bash
 git clone https://github.com/TrisDuc/DemoGoogleMap.git
+````
+
+---
+
+### Step 2: Open Project and Add Required Libraries (NetBeans 13)
+
+After cloning the repository, you need to open the project in **Apache NetBeans 13** and add the required `.jar` libraries.
+
+#### 2.1 Open the Project
+
+1. Open **Apache NetBeans 13**
+2. Click **File** → **Open Project**
+3. Select the cloned project folder and open it
+
+---
+
+#### 2.2 Add JAR Libraries
+
+1. In the **Projects** panel, expand your project
+2. Right-click **Libraries**
+3. Select **Add JAR/Folder**
+4. Add the following files:
+
+   * `jstl-1.2.jar`
+   * `sqljdbc4.jar`
+5. Click **Open**
+
+---
+
+#### 2.3 Verify Libraries
+
+Make sure both libraries appear under:
+
+```
+Libraries
+ ├── jstl-1.2.jar
+ └── sqljdbc4.jar
+ └── JDK 1.8.jar
+ └── Apache Tomcat or TomEE.jar
+```
+
+---
