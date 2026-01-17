@@ -8,11 +8,9 @@ The project is part of an **Eyeglasses Website system**, where the map feature s
 
 ## 📸 Screenshots
 
-### Database Structure
-![Database Schema](./img/SampleData.png)
 
-### Sample Data
-![Sample Data](./img/WebSample.png)
+### Web Demo
+![Web Demo](./img/WebSample.png)
 
 
 ---
