@@ -9,10 +9,11 @@ The project is part of an **Eyeglasses Website system**, where the map feature s
 ## 📸 Screenshots
 
 ### Database Structure
-![Database Schema](./images/db_structure.png)
+![Database Schema](./img/SampleData.png)
 
 ### Sample Data
-![Sample Data](./images/sample_data.png)
+![Sample Data](./img/WebSample.png)
+
 
 ---
 
@@ -71,6 +72,98 @@ Download the following JAR files and add them to your project’s `WEB-INF/lib` 
 * **SQL Server JDBC Driver**
   👉 [Download from Google Drive](https://drive.google.com/drive/folders/1-o-26cV1B0YvS_QCc-L3dLvUD78nGFRn?usp=sharing)
   *(File: `sqljdbc4.jar`)*
+
+
+---
+## ⚙️ Setup – SQL Server Network Configuration
+
+To allow the web application to connect to SQL Server, you must enable the **TCP/IP** communication protocol.
+
+
+### Step 1: Enable TCP/IP in SQL Server Configuration Manager
+
+#### 1️⃣ Open SQL Server Configuration Manager
+1. Press **Win + R** to open the **Run** dialog.
+2. Copy and paste the command that matches your SQL Server version, then press **Enter**.
+
+| SQL Server Version | Run Command |
+|-------------------|------------|
+| **SQL Server 2025 (17.x)** | `SQLServerManager17.msc` |
+| **SQL Server 2022 (16.x)** | `SQLServerManager16.msc` |
+| **SQL Server 2019 (15.x)** | `SQLServerManager15.msc` |
+| **SQL Server 2017 (14.x)** | `SQLServerManager14.msc` |
+| **SQL Server 2016 (13.x)** | `SQLServerManager13.msc` |
+| **SQL Server 2014 (12.x)** | `SQLServerManager12.msc` |
+| **SQL Server 2012 (11.x)** | `SQLServerManager11.msc` |
+
+---
+
+#### 2️⃣ Enable TCP/IP Protocol
+1. In **SQL Server Configuration Manager**, navigate to:  
+   **SQL Server Network Configuration** → **Protocols for [YourInstanceName]**  
+   *(Default instance name is usually `SQLEXPRESS')*
+
+2. Right-click **TCP/IP**  
+3. Select **Enable**
+
+---
+#### 3️⃣ Configure TCP Port (1433)
+1. Right-click **TCP/IP** → **Properties**
+2. Open the **IP Addresses** tab
+3. Scroll down to the **IPAll** section
+4. Configure the following values:
+
+| Field | Value |
+|------|-------|
+| **TCP Port** | `1433` |
+
+--- 
+#### 4️⃣ Restart SQL Server Service
+After enabling TCP/IP:
+1. Go to **SQL Server Services**
+2. Right-click **SQL Server ([YourInstanceName])**
+3. Select **Restart**
+
+---
+### Step 2: Configure SQL Server Authentication & Enable `sa` Login
+
+#### 1️⃣ Change Server Authentication Mode
+1. Open **SQL Server Management Studio (SSMS)**
+2. Connect to your SQL Server instance
+3. Right-click on the **server name** → select **Properties**
+4. Go to the **Security** tab
+5. Under **Server authentication**, select:
+
+   **✅ SQL Server and Windows Authentication mode**
+
+6. Click **OK**
+
+---
+
+#### 2️⃣ Enable and Configure `sa` Account
+1. In **Object Explorer**, expand:
+   - **Security** → **Logins**
+2. Find the login named **`sa`**
+3. Right-click **`sa`** → select **Properties**
+
+##### 🔑 Change Password
+- Go to the **General** tab
+- Enter a **new password**
+- Confirm the password
+
+##### 🔓 Enable Login
+1. Go to the **Status** tab
+2. Set:
+   - **Login:** `Enabled`
+3. Click **OK**
+
+---
+
+#### 3️⃣ Restart SQL Server
+Authentication mode changes **require a restart**.
+
+1. Right-click the **server name**
+2. Select **Restart**
 
 ---
 
