@@ -1,0 +1,189 @@
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Cập nhật Vị trí Cứu trợ</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; }
+        #map { height: 100vh; width: 100%; position: absolute; z-index: 1; }
+        
+        #controls {
+            position: absolute; top: 15px; left: 15px; z-index: 1000;
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 320px;
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; font-size: 13px; }
+        input, select {
+            width: 100%; padding: 10px; border: 1px solid #ddd;
+            border-radius: 6px; box-sizing: border-box; font-size: 14px;
+        }
+
+        .btn-gps { background: #17a2b8; color: white; margin-bottom: 10px; border: none; }
+        .btn-gps:hover { background: #138496; }
+        
+        .btn-submit { background: #28a745; color: white; border: none; font-size: 16px; margin-top: 10px; }
+        .btn-submit:hover { background: #218838; }
+
+        button {
+            width: 100%; padding: 12px; border-radius: 6px;
+            cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+
+        .coords-preview {
+            background: #f8f9fa; padding: 10px; border-radius: 6px;
+            border-left: 4px solid #007bff; margin-top: 10px; font-size: 12px;
+        }
+        
+        #ws-state { font-size: 11px; float: right; }
+    </style>
+</head>
+<body>
+
+<div id="controls">
+    <div style="margin-bottom: 10px;">
+        <span style="font-weight: bold;">Cập nhật tọa độ</span>
+        <span id="ws-state">🔴 Mất kết nối</span>
+    </div>
+
+    <div class="form-group">
+        <label>Mã định danh (UserID)</label>
+        <input type="text" id="userIdInput" readonly>
+    </div>
+
+    <hr>
+
+    <button type="button" class="btn-gps" id="locateBtn">📍 Lấy vị trí từ GPS</button>
+
+    <div class="form-group">
+        <label>Số nhà / Ngách</label>
+        <input type="text" id="addrNum" placeholder="VD: 123/45">
+    </div>
+
+    <div class="form-group">
+        <label>Tên đường</label>
+        <input type="text" id="addrStreet" placeholder="VD: Lê Lợi">
+    </div>
+
+    <div class="form-group">
+        <label>Tỉnh / Thành phố</label>
+        <select id="province">
+            <option value="">-- Chọn Tỉnh --</option>
+            <option value="Hà Nội">Hà Nội</option>
+            <option value="TP Hồ Chí Minh">TP Hồ Chí Minh</option>
+            <option value="Đà Nẵng">Đà Nẵng</option>
+            <option value="Hải Phòng">Hải Phòng</option>
+            <option value="Cần Thơ">Cần Thơ</option>
+            <option value="An Giang">An Giang</option>
+            <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
+            </select>
+    </div>
+
+    <div class="coords-preview" id="coordsPreview">
+        Tọa độ hiện tại: <br>
+        Lat: <span id="lat-display">--</span> | Lng: <span id="lng-display">--</span>
+    </div>
+
+    <button class="btn-submit" id="submitBtn">🚀 Gửi cập nhật hệ thống</button>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // 1. Khởi tạo
+    const map = L.map('map').setView([21.0278, 105.8342], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    
+    let currentMarker;
+    let finalLat = null;
+    let finalLng = null;
+
+    // Gán UserID cố định cho session này
+    const userId = "User_" + Math.floor(Math.random() * 9000 + 1000);
+    document.getElementById('userIdInput').value = userId;
+
+    // 2. WebSocket
+    const contextPath = window.location.pathname.split('/')[1];
+    const wsUrl = (window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host + "/" + contextPath + "/location-ws";
+    const socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => { document.getElementById('ws-state').innerText = "🟢 Đã kết nối"; };
+    socket.onclose = () => { document.getElementById('ws-state').innerText = "🔴 Mất kết nối"; };
+
+    // 3. Xử lý GPS
+    document.getElementById('locateBtn').addEventListener('click', () => {
+        if (!navigator.geolocation) return alert("Trình duyệt không hỗ trợ GPS");
+        
+        navigator.geolocation.getCurrentPosition(pos => {
+            updatePosition(pos.coords.latitude, pos.coords.longitude, "Vị trí từ GPS");
+        }, err => alert("Không lấy được GPS: " + err.message), {enableHighAccuracy: true});
+    });
+
+    // 4. Xử lý chuyển đổi Địa chỉ -> Tọa độ (Geocoding)
+    async function geocodeAddress() {
+        const num = document.getElementById('addrNum').value;
+        const street = document.getElementById('addrStreet').value;
+        const prov = document.getElementById('province').value;
+
+        if (street && prov) {
+            const fullAddr = `${num} ${street}, ${prov}, Vietnam`;
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddr)}&limit=1`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.length > 0) {
+                    updatePosition(parseFloat(data[0].lat), parseFloat(data[0].lon), "Vị trí theo địa chỉ");
+                }
+            } catch (e) { console.error("Geocoding error", e); }
+        }
+    }
+
+    // Lắng nghe sự kiện thay đổi trên các ô nhập địa chỉ
+    ['addrNum', 'addrStreet', 'province'].forEach(id => {
+        document.getElementById(id).addEventListener('change', geocodeAddress);
+    });
+
+    // 5. Hàm cập nhật Marker & Thông số
+    function updatePosition(lat, lng, label) {
+        finalLat = lat;
+        finalLng = lng;
+        
+        document.getElementById('lat-display').innerText = lat.toFixed(6);
+        document.getElementById('lng-display').innerText = lng.toFixed(6);
+
+        map.setView([lat, lng], 17);
+        if (currentMarker) map.removeLayer(currentMarker);
+        currentMarker = L.marker([lat, lng]).addTo(map).bindPopup(label).openPopup();
+    }
+
+    // 6. Gửi dữ liệu đi
+    document.getElementById('submitBtn').addEventListener('click', () => {
+        if (!finalLat || !finalLng) {
+            alert("Vui lòng lấy vị trí từ GPS hoặc nhập địa chỉ trước!");
+            return;
+        }
+
+        const data = {
+            id: userId,
+            lat: finalLat,
+            lng: finalLng,
+            type: "Citizen"
+        };
+
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(data));
+            alert("✅ Đã gửi tọa độ lên hệ thống!");
+        } else {
+            alert("❌ Lỗi: WebSocket chưa kết nối!");
+        }
+    });
+</script>
+</body>
+</html>

@@ -47,7 +47,7 @@ public class ListUserServlet extends HttpServlet {
         request.setAttribute("data", list); 
 
         // 3. Chuyển hướng sang trang index.html
-        request.getRequestDispatcher("index.html").forward(request, response);
+        request.getRequestDispatcher("demoMapForm.html").forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
