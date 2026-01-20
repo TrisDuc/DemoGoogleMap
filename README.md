@@ -196,6 +196,7 @@ After cloning the repository, you need to open the project in **Apache NetBeans 
 
    * `jstl-1.2.jar`
    * `sqljdbc4.jar`
+   * `gson-2.13.2.jar`
 5. Click **Open**
 
 ---
@@ -208,6 +209,7 @@ Make sure both libraries appear under:
 Libraries
  ├── jstl-1.2.jar
  └── sqljdbc4.jar
+ └── gson-2.13.2.jar
  └── JDK 1.8.jar
  └── Apache Tomcat or TomEE.jar
 ```
