@@ -71,7 +71,9 @@ Download the following JAR files and add them to your project’s `WEB-INF/lib` 
   👉 [Download from Google Drive](https://drive.google.com/drive/folders/1-o-26cV1B0YvS_QCc-L3dLvUD78nGFRn?usp=sharing)
   *(File: `sqljdbc4.jar`)*
 
-
+* **Gson**
+  👉 [Download from Google Drive](https://drive.google.com/drive/folders/1-o-26cV1B0YvS_QCc-L3dLvUD78nGFRn?usp=sharing)
+  *(File: `gson-2.13.2.jar`)*
 ---
 ## ⚙️ Setup – SQL Server Network Configuration
 
