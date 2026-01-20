@@ -1,15 +1,128 @@
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
--->
-<html>
-    <head>
-        <title>TODO supply a title</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body>
-        <div>TODO write content</div>
-    </body>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Vị trí tức thời - WebSocket</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        
+        #controls {
+            position: absolute; top: 15px; left: 15px; z-index: 1000;
+            background: white; padding: 20px; border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 280px;
+        }
+
+        button {
+            width: 100%; padding: 12px; background: #007bff;
+            color: white; border: none; border-radius: 6px;
+            cursor: pointer; font-weight: bold; font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+
+        .info-display {
+            margin-top: 15px; padding-top: 15px;
+            border-top: 1px solid #eee; line-height: 1.6;
+        }
+        
+        .coord-val { font-family: monospace; color: #d63384; font-weight: bold; }
+        #status { font-size: 12px; color: #666; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="controls">
+    <div id="status">WebSocket: <span id="ws-state">Đang kết nối...</span></div>
+    <button id="locateBtn">📍 Lấy vị trí hiện tại</button>
+    
+    <div class="info-display">
+        <strong>Tọa độ của bạn:</strong>
+        <div>Vĩ độ (Lat): <span id="lat-val" class="coord-val">--</span></div>
+        <div>Kinh độ (Lng): <span id="lng-val" class="coord-val">--</span></div>
+    </div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // 1. Khởi tạo bản đồ
+    const map = L.map('map').setView([21.0278, 105.8342], 13);
+    const userId = "User_" + Math.floor(Math.random() * 1000); // Tạo 1 lần duy nhất khi load trang
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let myMarker;
+
+    // 2. Cấu hình WebSocket (Tự động nhận diện Context Path)
+    const contextPath = window.location.pathname.split('/')[1]; 
+    const wsUrl = (window.location.protocol === "https:" ? "wss://" : "ws://") 
+                  + window.location.host + "/" + contextPath + "/location-ws";
+    
+    const socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => { 
+        document.getElementById('ws-state').innerText = "Đã kết nối ✅";
+        document.getElementById('ws-state').style.color = "green";
+    };
+
+    // 3. Hàm xử lý lấy vị trí một lần
+    function getQuickLocation() {
+        if (!navigator.geolocation) {
+            alert("Trình duyệt không hỗ trợ định vị!");
+            return;
+        }
+
+        const btn = document.getElementById('locateBtn');
+        btn.disabled = true;
+        btn.innerText = "⏳ Đang truy vấn GPS...";
+
+        navigator.geolocation.getCurrentPosition(position => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            // Hiển thị số liệu lên màn hình
+            document.getElementById('lat-val').innerText = lat.toFixed(6);
+            document.getElementById('lng-val').innerText = lng.toFixed(6);
+
+            // Di chuyển bản đồ và cập nhật Marker
+            map.setView([lat, lng], 17);
+            
+            if (myMarker) map.removeLayer(myMarker);
+            myMarker = L.marker([lat, lng]).addTo(map)
+                        .bindPopup("Bạn đang ở đây").openPopup();
+
+            // Gửi dữ liệu qua WebSocket
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    id: userId,
+                    lat: lat,
+                    lng: lng,
+                    type: "Citizen"
+                }));
+            }
+
+            btn.disabled = false;
+            btn.innerText = "📍 Cập nhật lại vị trí";
+
+        }, error => {
+            alert("Lỗi: " + error.message);
+            btn.disabled = false;
+            btn.innerText = "📍 Thử lại";
+        }, { 
+            enableHighAccuracy: true,
+            timeout: 10000 
+        });
+    }
+
+    document.getElementById('locateBtn').addEventListener('click', getQuickLocation);
+</script>
+</body>
 </html>

@@ -32,17 +32,5 @@ public class DBContext {
         }
         return null;
     }
-    
-    public static void main(String[] args) {
-        UserDAO dao = new UserDAO();
-        List<UserLocation> list = dao.getAllUsers();
-        if(list.isEmpty()){
-            System.out.println("DAO chạy được nhưng danh sách rỗng!");
-        } else {
-            for(UserLocation u : list){
-                System.out.println(u.getUserID() + " - " + u.getUserType());
-            }
-        }
-    }
 }
 

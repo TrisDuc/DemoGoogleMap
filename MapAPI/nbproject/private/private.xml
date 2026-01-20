@@ -5,6 +5,7 @@
         <group>
             <file>file:/D:/Servlet/MapAPI/MapAPI/src/java/control/ListUserServlet.java</file>
             <file>file:/D:/Servlet/MapAPI/MapAPI/web/WEB-INF/web.xml</file>
+            <file>file:/D:/Servlet/MapAPI/MapAPI/src/java/control/RescueSocket.java</file>
             <file>file:/D:/Servlet/MapAPI/MapAPI/src/java/model/UserLocation.java</file>
             <file>file:/D:/Servlet/MapAPI/MapAPI/web/index.html</file>
             <file>file:/D:/Servlet/MapAPI/MapAPI/src/java/dal/DBContext.java</file>

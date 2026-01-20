@@ -13,7 +13,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 /**
  *
  * @author Admin
@@ -40,15 +39,15 @@ public class ListUserServlet extends HttpServlet {
 //        request.setAttribute("data", list);
 //        request.getRequestDispatcher("display.jsp").forward(request, response);
         
-            // 1. Gọi DAO để lấy dữ liệu
-        dao.UserDAO dao = new dao.UserDAO(); 
+        // 1. Gọi DAO để lấy dữ liệu
+        UserDAO dao = new dao.UserDAO(); 
         List<model.UserLocation> list = dao.getAllUsers();
 
         // 2. Gắn list vào request với tên là "data"
         request.setAttribute("data", list); 
 
-        // 3. Chuyển hướng sang trang display.jsp
-        request.getRequestDispatcher("display.jsp").forward(request, response);
+        // 3. Chuyển hướng sang trang index.html
+        request.getRequestDispatcher("index.html").forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
